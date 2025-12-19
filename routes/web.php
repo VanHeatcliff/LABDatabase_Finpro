@@ -72,8 +72,8 @@ Route::middleware(['auth:pelanggan'])->group(function () {
     // 2. Memproses/Menyimpan Pesanan (INI YANG MENGATASI ERROR "Route not defined")
     Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
     
-    // (Note: Route CheckoutController yang lama bisa dihapus/dikomentari karena sudah diganti fungsinya di atas)
-
+    // Melihat Riwayat Pesanan
+    Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
     // Route Konfirmasi Pembayaran
     Route::post('/pesanan/{id}/konfirmasi', [PesananController::class, 'konfirmasiPembayaran'])->name('pesanan.konfirmasi');
 
