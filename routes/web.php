@@ -11,10 +11,12 @@ use App\Http\Controllers\Admin\DashboardController;
 // Controller Admin lainnya
 use App\Http\Controllers\Diskon\DiskonController;
 use App\Http\Controllers\Ulasan\UlasanController; 
+use App\Http\Controllers\Admin\AdminAuthController;
 
 // PENTING: Import Checkout & Pesanan dari folder 'Pesanan'
 use App\Http\Controllers\Pesanan\CheckoutController;
 use App\Http\Controllers\Pesanan\PesananController;
+use App\Http\Controllers\Admin\AdminController;
 
 
 /*
@@ -88,14 +90,38 @@ Route::middleware(['auth:pelanggan'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| 5. ADMIN ROUTES (Harus LOGIN sebagai Admin)
+| 5. ADMIN ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth:admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
 
-    // CRUD Produk, Diskon, Ulasan
-    Route::resource('produk', ProdukController::class)->except(['index', 'show']);
+// A. ROUTE LOGIN (Bisa diakses tanpa login)
+Route::prefix('admin')->group(function() {
+    Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('admin.login.submit');
+});
+
+// B. ROUTE DASHBOARD & MANAJEMEN (Harus LOGIN sebagai Admin)
+Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(function () {
+    
+    // 1. Logout
+    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+    // 2. Dashboard (Menggunakan DashboardController yang di folder Admin)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // 3. CRUD Produk, Diskon, Ulasan 
+    // (Pastikan controller ini ada, jika error 'Target class not found', cek namespace-nya lagi)
+    Route::resource('produk', ProdukController::class);
     Route::resource('diskon', DiskonController::class);
     Route::resource('ulasan', UlasanController::class);
+
+    // 4. --- MANAJEMEN PESANAN ---
+    // Lihat Daftar
+    Route::get('/pesanan', [AdminController::class, 'indexPesanan'])->name('pesanan.index');
+    
+    // Lihat Detail
+    Route::get('/pesanan/{id}', [AdminController::class, 'showPesanan'])->name('pesanan.show');
+    
+    // Update Status (ACC)
+    Route::post('/pesanan/{id}/update', [AdminController::class, 'updateStatus'])->name('pesanan.update');
 });

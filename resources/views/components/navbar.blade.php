@@ -23,6 +23,17 @@
 
             <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-6">
                 
+                <div class="mr-4">
+                    @auth('admin')
+                        <a href="{{ route('admin.dashboard') }}" class="px-3 py-1 text-xs font-bold text-red-600 border border-red-600 rounded hover:bg-red-600 hover:text-white transition">
+                            Dashboard Admin
+                        </a>
+                    @else
+                        <a href="{{ route('admin.login') }}" class="text-xs text-gray-400 hover:text-gray-800 transition">
+                            Admin
+                        </a>
+                    @endauth
+                </div>
                 @auth('pelanggan')
                     <a href="{{ route('keranjang.index') }}" class="group -m-2 p-2 flex items-center relative">
                         <svg class="flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,8 +42,9 @@
                         
                         @php
                             $cartCount = 0;
-                            if(Auth::guard('pelanggan')->user()->keranjang) {
-                                $cartCount = Auth::guard('pelanggan')->user()->keranjang->details->sum('Jumlah');
+                            $user = Auth::guard('pelanggan')->user();
+                            if($user && $user->keranjang) {
+                                $cartCount = $user->keranjang->details->sum('Jumlah');
                             }
                         @endphp
 
@@ -45,7 +57,7 @@
 
                     <div class="ml-3 relative">
                         <div>
-                            <button @click="profileOpen = !profileOpen" @click.away="profileOpen = false" type="button" class="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black" id="user-menu-button">
+                            <button @click="profileOpen = !profileOpen" @click.away="profileOpen = false" type="button" class="bg-white flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                                 <span class="sr-only">Open user menu</span>
                                 <span class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-black text-white font-bold">
                                     {{ substr(Auth::guard('pelanggan')->user()->Nama, 0, 1) }}
@@ -72,7 +84,7 @@
                                 <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::guard('pelanggan')->user()->Email }}</p>
                             </div>
 
-                            <a href="{{ route('pelanggan.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
+                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profil Saya</a>
                             <a href="{{ route('pesanan.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Riwayat Pesanan</a>
                             
                             <form method="POST" action="{{ route('logout') }}">
@@ -111,6 +123,17 @@
         </div>
         
         <div class="pt-4 pb-4 border-t border-gray-200">
+            <div class="px-4 mb-4">
+                @auth('admin')
+                    <a href="{{ route('admin.dashboard') }}" class="block text-center w-full px-4 py-2 border border-red-500 rounded-md shadow-sm text-sm font-medium text-red-600 bg-white hover:bg-red-50">
+                        Dashboard Admin
+                    </a>
+                @else
+                    <a href="{{ route('admin.login') }}" class="block text-center w-full text-xs text-gray-400 hover:text-gray-600">
+                        Login Admin
+                    </a>
+                @endauth
+            </div>
             @auth('pelanggan')
                 <div class="flex items-center px-4">
                     <div class="flex-shrink-0">
@@ -124,7 +147,7 @@
                     </div>
                 </div>
                 <div class="mt-3 space-y-1">
-                    <a href="{{ route('pelanggan.profile') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Profil Saya</a>
+                    <a href="#" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Profil Saya</a>
                     <a href="{{ route('pesanan.index') }}" class="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100">Riwayat Pesanan</a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

@@ -2,24 +2,10 @@
 
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication Defaults
-    |--------------------------------------------------------------------------
-    |
-    */
-
     'defaults' => [
-        // UBAH INI: Jadikan 'pelanggan' sebagai default
-        'guard' => env('AUTH_GUARD', 'pelanggan'),
-        'passwords' => env('AUTH_PASSWORD_BROKER', 'pelanggan'),
+        'guard' => 'pelanggan',
+        'passwords' => 'pelanggan',
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Authentication Guards
-    |--------------------------------------------------------------------------
-    */
 
     'guards' => [
         'admin' => [
@@ -33,12 +19,6 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | User Providers
-    |--------------------------------------------------------------------------
-    */
-
     'providers' => [
         'admin' => [
             'driver' => 'eloquent',
@@ -51,39 +31,21 @@ return [
         ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Resetting Passwords
-    |--------------------------------------------------------------------------
-    |
-    | Bagian ini penting jika nanti Anda membuat fitur "Lupa Password"
-    |
-    */
-
     'passwords' => [
-        // Setup reset password untuk Pelanggan
-        'pelanggan' => [
-            'provider' => 'pelanggan',
-            'table' => 'password_reset_tokens',
-            'expire' => 60,
-            'throttle' => 60,
-        ],
-
-        // Setup reset password untuk Admin
         'admin' => [
             'provider' => 'admin',
             'table' => 'password_reset_tokens',
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        'pelanggan' => [
+            'provider' => 'pelanggan',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Password Confirmation Timeout
-    |--------------------------------------------------------------------------
-    */
-
-    'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
-
+    'password_timeout' => 10800,
 ];
