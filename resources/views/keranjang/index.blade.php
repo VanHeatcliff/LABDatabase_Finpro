@@ -37,7 +37,7 @@
 
                             <li class="p-6 flex items-center">
                                 <div class="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                                    <img src="{{ $item->produk->gambar ?? 'https://via.placeholder.com/150' }}" 
+                                    <img src="{{ $item->produk->gambar_url ?? 'https://via.placeholder.com/150' }}" 
                                          alt="{{ $item->produk->Nama_Produk }}" 
                                          class="h-full w-full object-cover object-center">
                                 </div>

@@ -10,6 +10,7 @@ class Produk extends Model
     protected $primaryKey = 'id_produk';
     public $incrementing = false;
     protected $keyType = 'string';
+    public $timestamps = false;
 
     protected $fillable = [
         'id_produk',

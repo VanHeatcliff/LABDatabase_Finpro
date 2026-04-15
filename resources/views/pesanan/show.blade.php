@@ -25,16 +25,15 @@
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Alamat Pengiriman</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ $pesanan->alamat->Alamat_Lengkap }}<br>
-                        {{ $pesanan->alamat->Kota }}, {{ $pesanan->alamat->Kode_Pos }}
+                        {{ $pesanan->Alamat_Pengiriman }}
                     </dd>
                 </div>
 
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Metode Pembayaran</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ $pesanan->pembayaran->metode->Nama_Metode ?? '-' }} 
-                        (Status: {{ $pesanan->pembayaran->Jumlah_Bayar ? 'Lunas' : 'Belum Dibayar' }})
+                        {{ $pesanan->metodeBayar->Nama_Metode ?? '-' }} 
+                        (Status: {{ $pesanan->Status_Pesanan }})
                     </dd>
                 </div>
 
@@ -60,6 +59,17 @@
                             <span class="ml-4">Rp {{ number_format($pesanan->Total_Harga, 0, ',', '.') }}</span>
                         </li>
                     </ul>
+
+                    @if($pesanan->Status_Pesanan === 'Diproses')
+                    <div class="mt-6 flex justify-end">
+                        <form action="{{ route('pesanan.konfirmasi', $pesanan->ID_Pesanan) }}" method="POST">
+                            @csrf
+                            <button type="submit" onclick="return confirm('Apakah kamu yakin sudah melakukan pembayaran?');" class="px-6 py-2 bg-black text-white font-medium rounded hover:bg-gray-800 transition">
+                                Konfirmasi Pembayaran
+                            </button>
+                        </form>
+                    </div>
+                    @endif
                 </div>
             </dl>
         </div>
