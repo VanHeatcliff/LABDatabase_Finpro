@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Pesanan\CheckoutController;
 use App\Http\Controllers\Pesanan\PesananController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ProdukController as AdminProdukController;
 
 
 /*
@@ -111,7 +112,7 @@ Route::middleware(['auth:admin'])->prefix('admin')->name('admin.')->group(functi
 
     // 3. CRUD Produk, Diskon, Ulasan 
     // (Pastikan controller ini ada, jika error 'Target class not found', cek namespace-nya lagi)
-    Route::resource('produk', ProdukController::class);
+    Route::resource('produk', AdminProdukController::class);
     Route::resource('diskon', DiskonController::class);
     Route::resource('ulasan', UlasanController::class);
 
