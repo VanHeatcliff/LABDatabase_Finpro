@@ -32,7 +32,9 @@ class AuthController extends Controller
             'password' => $request->password // Key WAJIB 'password' kecil
         ];
 
-        if (Auth::guard('pelanggan')->attempt($credentials)) {
+        $remember = $request->has('remember');
+
+        if (Auth::guard('pelanggan')->attempt($credentials, $remember)) {
             $request->session()->regenerate();
             return redirect()->intended('/')->with('success', 'Login Berhasil!');
         }
