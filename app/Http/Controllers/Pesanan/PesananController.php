@@ -11,7 +11,7 @@ use App\Models\DetailPesanan;
 use App\Models\MetodeBayar;
 use App\Models\Keranjang;
 use App\Models\Pembayaran;
-
+use App\Models\DiskonPromosi;
 class PesananController extends Controller
 {
     public function index()
@@ -41,6 +41,7 @@ class PesananController extends Controller
             'alamat_pengiriman' => 'required',
             'total_harga'       => 'required|numeric',
             'ID_Metode'         => 'required|exists:metode_bayar,ID_Metode',
+            'kode_diskon'       => 'nullable|string'
         ]);
 
         DB::beginTransaction();
@@ -78,6 +79,21 @@ class PesananController extends Controller
             // Pastikan di tabel `pesanan` ada kolom `Alamat_Pengiriman`
             // Jika nama kolom di DB kamu `Alamat_Lengkap`, ganti bagian ini.
             $pesanan->Alamat_Pengiriman = $request->alamat_pengiriman; 
+
+            // Cek Diskon
+            if ($request->kode_diskon) {
+                $diskon = DiskonPromosi::where('Kode_Diskon', $request->kode_diskon)->first();
+                if ($diskon) {
+                    $pesanan->ID_Diskon = $diskon->ID_Diskon;
+                    
+                    // Hitung ulang total untuk keamanan
+                    $totalAsli = $keranjang->details->sum(function($detail) {
+                        return $detail->produk->Harga * $detail->jumlah;
+                    });
+                    $potongan = $totalAsli * ($diskon->Persentase / 100);
+                    $pesanan->Total_Harga = $totalAsli - $potongan;
+                }
+            }
             
             $pesanan->save();
 
@@ -173,5 +189,48 @@ class PesananController extends Controller
     public function show($id) {
         $pesanan = Pesanan::with(['details.produk', 'metodeBayar'])->findOrFail($id);
         return view('pesanan.show', compact('pesanan'));
+    }
+
+    public function cekPromo(Request $request)
+    {
+        $request->validate([
+            'kode_diskon' => 'required|string'
+        ]);
+
+        $diskon = DiskonPromosi::where('Kode_Diskon', $request->kode_diskon)
+            ->where(function($query) {
+                $query->where('Statues', 'Aktif')
+                      ->orWhere('Statues', 'aktif')
+                      ->orWhere('Statues', 'AKTIF');
+            })
+            ->first();
+
+        // Opsional: Cek tanggal berlaku jika tidak null
+        if ($diskon) {
+            $now = now()->toDateString();
+            if ($diskon->Tanggal_Berlaku && $diskon->Tanggal_Berlaku > $now) {
+                $diskon = null;
+            }
+            if ($diskon && $diskon->Tanggal_Akhir && $diskon->Tanggal_Akhir < $now) {
+                $diskon = null;
+            }
+        }
+
+        if ($diskon) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Promo berhasil diterapkan!',
+                'data' => [
+                    'id_diskon' => $diskon->ID_Diskon,
+                    'kode_diskon' => $diskon->Kode_Diskon,
+                    'persentase' => $diskon->Persentase
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Kode promo tidak valid atau sudah tidak aktif.'
+        ], 404);
     }
 }

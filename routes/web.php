@@ -72,6 +72,9 @@ Route::middleware(['auth:pelanggan'])->group(function () {
     // 1. Menampilkan halaman checkout (Method 'create' di PesananController memuat data bank)
     Route::get('/checkout', [PesananController::class, 'create'])->name('checkout.index');
     
+    // Route untuk Cek Promo secara AJAX
+    Route::post('/cek-promo', [PesananController::class, 'cekPromo'])->name('pesanan.cekPromo');
+    
     // 2. Memproses/Menyimpan Pesanan (INI YANG MENGATASI ERROR "Route not defined")
     Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
     
