@@ -115,18 +115,33 @@
                         @endforeach
                     </ul>
 
+                    <!-- Form Diskon -->
+                    <div class="mb-4 pt-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kode Promo</label>
+                        <div class="flex">
+                            <input type="text" id="input_kode_promo" class="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-l-md border border-gray-300 focus:ring-black focus:border-black sm:text-sm" placeholder="Masukkan kode promo">
+                            <button type="button" id="btn_terapkan_promo" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-black hover:bg-gray-800 focus:outline-none">Terapkan</button>
+                        </div>
+                        <p id="promo_message" class="text-xs mt-1 hidden"></p>
+                    </div>
+
                     <div class="border-t border-gray-200 pt-4 space-y-2">
                         <div class="flex justify-between text-sm text-gray-600">
                             <p>Subtotal</p>
                             <p>Rp {{ number_format($totalBayar, 0, ',', '.') }}</p>
                         </div>
+                        <div id="diskon_row" class="flex justify-between text-sm text-green-600 hidden">
+                            <p>Diskon (<span id="diskon_persen">0</span>%)</p>
+                            <p>- Rp <span id="diskon_nominal">0</span></p>
+                        </div>
                         <div class="flex justify-between text-base font-medium text-gray-900 pt-2 border-t">
                             <p>Total Bayar</p>
-                            <p>Rp {{ number_format($totalBayar, 0, ',', '.') }}</p>
+                            <p>Rp <span id="display_total_bayar">{{ number_format($totalBayar, 0, ',', '.') }}</span></p>
                         </div>
                     </div>
 
-                    <input type="hidden" name="total_harga" value="{{ $keranjang->details->sum(fn($detail) => $detail->produk->Harga * $detail->jumlah) }}">
+                    <input type="hidden" name="kode_diskon" id="hidden_kode_diskon" value="">
+                    <input type="hidden" name="total_harga" id="hidden_total_harga" value="{{ $totalBayar }}">
 
                     <button type="submit" class="mt-6 w-full bg-black border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black">
                         Konfirmasi Pesanan
@@ -137,4 +152,64 @@
         </div>
     </form>
 </div>
+
+<script>
+document.getElementById('btn_terapkan_promo').addEventListener('click', function() {
+    let kode = document.getElementById('input_kode_promo').value;
+    let messageEl = document.getElementById('promo_message');
+    let subtotal = {{ $totalBayar }};
+    
+    if(!kode) {
+        messageEl.textContent = 'Silakan masukkan kode promo.';
+        messageEl.className = 'text-xs mt-1 text-red-500 block';
+        return;
+    }
+
+    messageEl.textContent = 'Mengecek...';
+    messageEl.className = 'text-xs mt-1 text-gray-500 block';
+
+    fetch('{{ route("pesanan.cekPromo") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ kode_diskon: kode })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            messageEl.textContent = data.message;
+            messageEl.className = 'text-xs mt-1 text-green-500 block';
+            
+            let persen = data.data.persentase;
+            let potongan = subtotal * (persen / 100);
+            let totalAkhir = subtotal - potongan;
+
+            // Update UI
+            document.getElementById('diskon_row').classList.remove('hidden');
+            document.getElementById('diskon_persen').textContent = persen;
+            document.getElementById('diskon_nominal').textContent = new Intl.NumberFormat('id-ID').format(potongan);
+            document.getElementById('display_total_bayar').textContent = new Intl.NumberFormat('id-ID').format(totalAkhir);
+            
+            // Update Hidden Inputs
+            document.getElementById('hidden_kode_diskon').value = kode;
+            document.getElementById('hidden_total_harga').value = totalAkhir;
+        } else {
+            messageEl.textContent = data.message || 'Promo tidak valid.';
+            messageEl.className = 'text-xs mt-1 text-red-500 block';
+            
+            // Reset UI
+            document.getElementById('diskon_row').classList.add('hidden');
+            document.getElementById('display_total_bayar').textContent = new Intl.NumberFormat('id-ID').format(subtotal);
+            document.getElementById('hidden_kode_diskon').value = '';
+            document.getElementById('hidden_total_harga').value = subtotal;
+        }
+    })
+    .catch(error => {
+        messageEl.textContent = 'Terjadi kesalahan jaringan.';
+        messageEl.className = 'text-xs mt-1 text-red-500 block';
+    });
+});
+</script>
 @endsection

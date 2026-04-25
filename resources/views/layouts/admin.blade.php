@@ -40,6 +40,12 @@
                     <span class="font-medium">Produk</span>
                 </a>
 
+                <a href="{{ route('admin.diskon.index') }}" 
+                   class="flex items-center px-4 py-3 rounded-lg transition-colors {{ request()->routeIs('admin.diskon.*') ? 'bg-red-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                    <i class="fas fa-tags w-6"></i>
+                    <span class="font-medium">Promo Diskon</span>
+                </a>
+
                 <div class="border-t border-gray-800 my-2"></div>
 
                 <a href="{{ route('home') }}" target="_blank"
