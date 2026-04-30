@@ -91,9 +91,19 @@ class CheckoutController extends Controller
             ]);
 
             // ------------------------------------------------------------------
-            // LANGKAH 4: PINDAHKAN ITEM KERANJANG KE DETAIL PESANAN
+            // LANGKAH 4: PINDAHKAN ITEM KERANJANG KE DETAIL PESANAN & KURANGI STOK
             // ------------------------------------------------------------------
             foreach ($keranjang->details as $detail) {
+                $produk = $detail->produk;
+
+                // Cek ketersediaan stok
+                if ($produk->Stok < $detail->jumlah) {
+                    throw new \Exception("Stok untuk produk " . ($produk->nama_produk ?? 'tersebut') . " tidak mencukupi. Stok tersisa: " . $produk->Stok);
+                }
+
+                // Kurangi stok
+                $produk->Stok -= $detail->jumlah;
+                $produk->save();
                 
                 // Generate ID Detail (DPxxxxx)
                 $idDetail = IDGenerator::generate('detail_pesanan', 'ID_Detail', 'DP', 5);
@@ -103,7 +113,7 @@ class CheckoutController extends Controller
                     'ID_Pesanan' => $idPesanan,
                     'ID_Produk' => $detail->ID_Produk,
                     'Jumlah' => $detail->jumlah,        // Masuk ke kolom 'Jumlah'
-                    'Harga_Satuan' => $detail->produk->Harga // Sesuai screenshot kamu
+                    'Harga_Satuan' => $produk->Harga // Sesuai screenshot kamu
                 ]);
             }
 
@@ -119,8 +129,7 @@ class CheckoutController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            // Tampilkan error di layar (debug)
-            dd($e->getMessage());
+            return redirect()->back()->with('error', 'Gagal memproses pesanan: ' . $e->getMessage());
         }
     }
 }
