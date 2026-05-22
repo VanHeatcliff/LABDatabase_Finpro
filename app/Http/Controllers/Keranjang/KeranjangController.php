@@ -10,6 +10,7 @@ use App\Models\Produk;
 use App\Helpers\IDGenerator;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class KeranjangController extends Controller
 {
@@ -35,46 +36,48 @@ class KeranjangController extends Controller
         $idPelanggan = Auth::user()->ID_Pelanggan;
         $qty = $request->qty ?? 1;
 
-        // 1. Cek atau Buat Header Keranjang (KRxxx)
-        $keranjang = Keranjang::where('ID_Pelanggan', $idPelanggan)->first();
+        DB::transaction(function () use ($idPelanggan, $request, $qty) {
+            // 1. Cek atau Buat Header Keranjang (KRxxx)
+            $keranjang = Keranjang::where('ID_Pelanggan', $idPelanggan)->first();
 
-        if (!$keranjang) {
-            $idKeranjang = IDGenerator::generate('keranjang', 'ID_Keranjang', 'KR');
-            
-            $keranjang = Keranjang::create([
-                'ID_Keranjang' => $idKeranjang,
-                'ID_Pelanggan' => $idPelanggan,
-                'TglUpdate' => Carbon::now()
-            ]);
-        } else {
-            // Update timestamp
-            $keranjang->update(['TglUpdate' => Carbon::now()]);
-        }
+            if (!$keranjang) {
+                $idKeranjang = IDGenerator::generate('keranjang', 'ID_Keranjang', 'KR');
+                
+                $keranjang = Keranjang::create([
+                    'ID_Keranjang' => $idKeranjang,
+                    'ID_Pelanggan' => $idPelanggan,
+                    'TglUpdate' => Carbon::now()
+                ]);
+            } else {
+                // Update timestamp
+                $keranjang->update(['TglUpdate' => Carbon::now()]);
+            }
 
-        // 2. Cek Detail Item (DKxxx)
-        // Cek apakah produk ini sudah ada di keranjang tersebut?
-        $detail = DetailKeranjang::where('ID_keranjang', $keranjang->ID_Keranjang)
-                ->where('ID_Produk', $request->id_produk)
-                ->first();
+            // 2. Cek Detail Item (DKxxx)
+            // Cek apakah produk ini sudah ada di keranjang tersebut?
+            $detail = DetailKeranjang::where('ID_keranjang', $keranjang->ID_Keranjang)
+                    ->where('ID_Produk', $request->id_produk)
+                    ->first();
 
-    if ($detail) {
-        // Jika sudah ada, tambah jumlahnya
-        // UPDATE: Gunakan 'jumlah' (kecil)
-        $detail->jumlah += $qty;
-        $detail->save();
-    } else {
-        // Jika belum ada, buat baris detail baru
-        $idDetail = IDGenerator::generate('detail_keranjang', 'ID_DetailKeranjang', 'DK');
+            if ($detail) {
+                // Jika sudah ada, tambah jumlahnya
+                // UPDATE: Gunakan 'jumlah' (kecil)
+                $detail->jumlah += $qty;
+                $detail->save();
+            } else {
+                // Jika belum ada, buat baris detail baru
+                $idDetail = IDGenerator::generate('detail_keranjang', 'ID_DetailKeranjang', 'DK');
 
-        DetailKeranjang::create([
-            'ID_DetailKeranjang' => $idDetail,
-            
-            // PERBAIKAN DISINI: Gunakan key sesuai $fillable (Huruf Kecil)
-            'ID_keranjang' => $keranjang->ID_Keranjang, 
-            'ID_Produk' => $request->id_produk,
-            'jumlah' => $qty 
-        ]);
-    }
+                DetailKeranjang::create([
+                    'ID_DetailKeranjang' => $idDetail,
+                    
+                    // PERBAIKAN DISINI: Gunakan key sesuai $fillable (Huruf Kecil)
+                    'ID_keranjang' => $keranjang->ID_Keranjang, 
+                    'ID_Produk' => $request->id_produk,
+                    'jumlah' => $qty 
+                ]);
+            }
+        });
 
     return redirect()->back()->with('success', 'Produk berhasil masuk keranjang!');
     }
