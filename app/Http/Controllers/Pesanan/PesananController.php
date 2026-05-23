@@ -108,6 +108,17 @@ class PesananController extends Controller
             }
 
             foreach ($keranjang->details as $item) {
+                $produk = $item->produk;
+
+                // Cek ketersediaan stok
+                if ($produk->Stok < $item->jumlah) {
+                    throw new \Exception("Stok untuk produk " . ($produk->nama_produk ?? 'tersebut') . " tidak mencukupi. Stok tersisa: " . $produk->Stok);
+                }
+
+                // Kurangi stok
+                $produk->Stok -= $item->jumlah;
+                $produk->save();
+
                 $detail = new DetailPesanan();
                 
                 $detail->ID_Detail    = 'DP' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
@@ -121,7 +132,7 @@ class PesananController extends Controller
                 // $detail->Jumlah (huruf besar) untuk kolom DB DetailPesanan
                 $detail->Jumlah       = $item->jumlah; 
                 
-                $detail->Harga_Satuan = $item->produk->Harga; 
+                $detail->Harga_Satuan = $produk->Harga; 
                 
                 $detail->save();
             }

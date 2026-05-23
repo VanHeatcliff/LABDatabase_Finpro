@@ -34,6 +34,10 @@ class AdminController extends Controller
     // 3. Update Status (Logika ACC)
     public function updateStatus(Request $request, $id)
     {
+        $request->validate([
+            'status_baru' => 'required|string|in:Menunggu Verifikasi,Diproses,Dikirim,Selesai,Dibatalkan'
+        ]);
+
         $pesanan = Pesanan::findOrFail($id);
         
         // Ubah status sesuai input dari tombol
